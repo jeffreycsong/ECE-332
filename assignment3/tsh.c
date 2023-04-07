@@ -298,6 +298,11 @@ int builtin_cmd(char **argv){
 
 /* Contributions: Byung Woong Ko
  * do_bgfg - Execute the builtin bg and fg commands
+ 
+• Handle error cases
+• Change job state and send SIGCONT to PID
+• Use kill function
+• If foreground, will need to wait on job
  */
 void do_bgfg(char **argv){
   struct job_t* job;        // Initialize job
@@ -358,6 +363,8 @@ void do_bgfg(char **argv){
 
 /* Contributions: Jeffrey Song
  * waitfg - Block until process pid is no longer the foreground process
+ 
+ Wait for foreground job to finish
  */
 void waitfg(pid_t pid)
 {
@@ -382,6 +389,11 @@ void waitfg(pid_t pid)
  *     received a SIGSTOP or SIGTSTP signal. The handler reaps all
  *     available zombie children, but doesn't wait for any other
  *     currently running children to terminate.  
+ 
+• Check if job exited – if so, delete the job
+• Check if terminated by signal – if so, print out notice and delete job
+• Check if stopped – if so, print out notice and change job state
+• Use WIFEXITED(), WIFSIGNALED(), and WIFSTOPPED() macro functions
  */
 void sigchld_handler(int sig) 
 {
@@ -419,6 +431,9 @@ void sigchld_handler(int sig)
  * sigint_handler - The kernel sends a SIGINT to the shell whenver the
  *    user types ctrl-c at the keyboard.  Catch it and send it along
  *    to the foreground job.  
+ 
+• Use kill to send sigint to foreground process group
+• Send –pid to kill to do this
  */
 void sigint_handler(int sig) 
 {
